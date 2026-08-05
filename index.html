@@ -31,6 +31,7 @@
     <nav class="nav" id="sideNav">
       <div class="nav-item active" data-p="overview"><i data-lucide="layout-dashboard"></i>Overview</div>
       <div class="nav-item" data-p="tasks"><i data-lucide="check-square"></i>Tasks<span class="nav-badge" id="navTaskBadge"></span></div>
+      <div class="nav-item" data-p="habits"><i data-lucide="flame"></i>Habits</div>
       <div class="nav-item" data-p="calendar"><i data-lucide="calendar"></i>Calendar</div>
       <div class="nav-item" data-p="goals"><i data-lucide="target"></i>Goals</div>
       <div class="nav-item" data-p="projects"><i data-lucide="folder-kanban"></i>Projects</div>
@@ -45,6 +46,7 @@
   <main class="main" id="mainContent">
     <div class="page-view active" id="pg-overview"></div>
     <div class="page-view" id="pg-tasks"></div>
+    <div class="page-view" id="pg-habits"></div>
     <div class="page-view" id="pg-calendar"></div>
     <div class="page-view" id="pg-goals"></div>
     <div class="page-view" id="pg-projects"></div>
@@ -79,8 +81,16 @@
 <script src="js/goals.js"></script>
 <script src="js/projects.js"></script>
 <script src="js/reminders.js"></script>
-
+<script src="js/habits.js"></script>
 <script>
+  // Clear stale localStorage that had integrations
+  (function() {
+    try {
+      var s = localStorage.getItem('orbit_data');
+      if (s && s.indexOf('integrations') !== -1) localStorage.removeItem('orbit_data');
+    } catch(e) { localStorage.removeItem('orbit_data'); }
+  })();
+
   // Boot
   setTimeout(() => {
     document.getElementById('splash').style.opacity = '0';
