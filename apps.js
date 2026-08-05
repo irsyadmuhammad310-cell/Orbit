@@ -82,6 +82,7 @@ const Orbit = (() => {
     const renderers = {
       overview: Overview.render,
       tasks: Tasks.render,
+      habits: Habits.render,
       calendar: Calendar.render,
       goals: Goals.render,
       projects: Projects.render,
