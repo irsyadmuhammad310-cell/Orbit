@@ -42,7 +42,6 @@ const Orbit = (() => {
       { id: 'r4', text: 'Weekly goal check-in', dt: '2026-08-08T20:00', rec: 'weekly', done: false },
       { id: 'r5', text: 'Buy pixel art tutorial', dt: '2026-08-07T10:00', rec: null, done: false },
     ],
-    integrations: { gcal: true, gdrive: true, fintrack: true },
     settings: { currency: 'MYR', notifications: true, desktopMode: false },
     calMonth: TODAY.getMonth(),
     calYear: TODAY.getFullYear(),
@@ -87,7 +86,6 @@ const Orbit = (() => {
       goals: Goals.render,
       projects: Projects.render,
       reminders: Reminders.render,
-      integrations: Integrations.render,
     };
     if (renderers[page]) renderers[page]();
     updateBadges();
@@ -106,23 +104,7 @@ const Orbit = (() => {
     document.getElementById('navRemBadge').textContent = remCount || '';
   }
 
-  // ─── Sync Status ───
-  function updateSyncStatus() {
-    const dot = document.getElementById('syncDot');
-    const label = document.getElementById('syncStatus');
-    const hasFinTrack = localStorage.getItem('ft_accounts') || localStorage.getItem('ft_txn_data');
 
-    if (state.integrations.fintrack && hasFinTrack) {
-      dot.className = 'sync-dot live';
-      label.textContent = 'synced';
-    } else if (state.integrations.fintrack) {
-      dot.className = 'sync-dot off';
-      label.textContent = 'no data';
-    } else {
-      dot.className = 'sync-dot off';
-      label.textContent = 'disabled';
-    }
-  }
 
   // ─── Reminder Checker ───
   function checkReminders() {
@@ -188,7 +170,6 @@ const Orbit = (() => {
     // Initial render
     lucide.createIcons();
     go('overview');
-    updateSyncStatus();
   }
 
   // ─── Public API ───
@@ -200,7 +181,6 @@ const Orbit = (() => {
     go,
     currentPage,
     updateBadges,
-    updateSyncStatus,
     modal,
     closeModal,
     init,
