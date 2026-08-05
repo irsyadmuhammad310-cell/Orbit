@@ -123,4 +123,4 @@ const Projects = (() => {
   }
 
   return { render, newModal, save, addExpense, del };
-})();
+})(); 
