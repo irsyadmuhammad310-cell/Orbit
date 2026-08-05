@@ -36,15 +36,9 @@
       <div class="nav-item" data-p="projects"><i data-lucide="folder-kanban"></i>Projects</div>
       <div class="nav-item" data-p="reminders"><i data-lucide="bell"></i>Reminders<span class="nav-badge warn" id="navRemBadge"></span></div>
       <div class="nav-divider"></div>
-      <div class="nav-item" data-p="integrations"><i data-lucide="plug"></i>Integrations</div>
       <div class="nav-item" data-p="settings"><i data-lucide="settings"></i>Settings</div>
     </nav>
-    <div class="sidebar-footer">
-      <div class="sync-card" onclick="Orbit.go('integrations')">
-        <div class="sync-dot" id="syncDot"></div>
-        <div class="sync-info"><strong id="syncLabel">FinTrack</strong> <span id="syncStatus">checking...</span></div>
-      </div>
-    </div>
+    <div class="sidebar-footer"></div>
   </aside>
 
   <!-- Main Content -->
@@ -55,7 +49,6 @@
     <div class="page-view" id="pg-goals"></div>
     <div class="page-view" id="pg-projects"></div>
     <div class="page-view" id="pg-reminders"></div>
-    <div class="page-view" id="pg-integrations"></div>
     <div class="page-view" id="pg-settings"></div>
   </main>
 </div>
@@ -86,7 +79,7 @@
 <script src="js/goals.js"></script>
 <script src="js/projects.js"></script>
 <script src="js/reminders.js"></script>
-<script src="js/integrations.js"></script>
+
 <script>
   // Boot
   setTimeout(() => {
