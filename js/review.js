@@ -1,6 +1,6 @@
 // js/review.js — Weekly Review: auto-generated summary of the week
 
-const Review = {
+var Review = {
   init() {},
 
   // Generate review data for current week (Mon-Sun)
