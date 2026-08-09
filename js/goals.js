@@ -1,6 +1,6 @@
 // js/goals.js — Goal cards, progress tracking, CRUD
 
-const Goals = {
+var Goals = {
   init() {
     this.render();
   },
