@@ -1,6 +1,6 @@
 // js/notes.js — Sticky notes: render, enlarge on click, add/delete
 
-const Notes = {
+var Notes = {
   colors: [
     { name: 'yellow', class: 'sticky--yellow', bg: 'var(--sticky-yellow)' },
     { name: 'pink', class: 'sticky--pink', bg: 'var(--sticky-pink)' },
