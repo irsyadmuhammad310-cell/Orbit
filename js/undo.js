@@ -1,41 +1,24 @@
 // js/undo.js — Undo system with toast notifications
+// Toast element is already in index.html, no injection needed
 
-const Undo = {
+var Undo = {
   stack: [],
   toastTimeout: null,
-
-  init() {
-    this.injectToastUI();
-  },
-
-  injectToastUI() {
-    if (document.getElementById('undoToast')) return;
-    const toast = document.createElement('div');
-    toast.id = 'undoToast';
-    toast.className = 'undo-toast';
-    toast.innerHTML = `
-      <span class="undo-toast-msg" id="undoToastMsg"></span>
-      <button class="undo-toast-btn" onclick="Undo.execute()">Undo</button>
-      <button class="undo-toast-close" onclick="Undo.hideToast()">✕</button>
-    `;
-    document.body.appendChild(toast);
-  },
 
   // Push an undoable action onto the stack
   push(type, data) {
     this.stack.push({ type, data, timestamp: Date.now() });
-    // Only keep last 10 actions
     if (this.stack.length > 10) this.stack.shift();
     this.showToast(type, data);
   },
 
   // Show the toast notification
   showToast(type, data) {
-    const toast = document.getElementById('undoToast');
-    const msg = document.getElementById('undoToastMsg');
+    var toast = document.getElementById('undoToast');
+    var msg = document.getElementById('undoToastMsg');
     if (!toast || !msg) return;
 
-    const messages = {
+    var messages = {
       'complete': `Task completed`,
       'uncomplete': `Task uncompleted`,
       'delete_task': `Task deleted`,
