@@ -1,6 +1,6 @@
 // js/projects.js — Project cards, stats, status tracking
 
-const Projects = {
+var Projects = {
   init() {
     this.render();
   },
