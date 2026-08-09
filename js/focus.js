@@ -1,6 +1,6 @@
 // js/focus.js — Focus Mode with Pomodoro timer
 
-const Focus = {
+var Focus = {
   isRunning: false,
   isPaused: false,
   currentTaskId: null,
