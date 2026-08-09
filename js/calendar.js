@@ -1,6 +1,6 @@
 // js/calendar.js — Monthly calendar view with events sidebar
 
-const Calendar = {
+var Calendar = {
   currentYear: new Date().getFullYear(),
   currentMonth: new Date().getMonth(),
 
