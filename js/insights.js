@@ -1,6 +1,6 @@
 // js/insights.js — Productivity analytics and trends
 
-const Insights = {
+var Insights = {
   init() {},
 
   render() {
