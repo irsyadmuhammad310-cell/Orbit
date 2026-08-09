@@ -1,6 +1,6 @@
 // js/settings.js — Profile, preferences, integrations, data management
 
-const Settings = {
+var Settings = {
   init() {
     this.render();
   },
