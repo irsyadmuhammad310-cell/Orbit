@@ -1,17 +1,14 @@
 // js/app.js — Core navigation, routing, initialization
+// NOTE: This file MUST be loaded LAST (after all other modules)
 
-const App = {
+var App = {
   currentPage: 'overview',
 
   init() {
     this.bindNav();
     this.bindQuickAdd();
     this.updateGreeting();
-    this.updateCounts();
-    this.updateWeeklyProgress();
-    // Initialize all modules
-    Undo.init();
-    Search.init();
+    // Render all pages
     Overview.init();
     Tasks.init();
     Goals.init();
@@ -19,6 +16,9 @@ const App = {
     Notes.init();
     Calendar.init();
     Settings.init();
+    // Update counts after render
+    this.updateCounts();
+    this.updateWeeklyProgress();
   },
 
   bindNav() {
