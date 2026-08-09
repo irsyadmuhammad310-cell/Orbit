@@ -1,6 +1,6 @@
 // js/tasks.js — Task management: CRUD, filters, toggle complete
 
-const Tasks = {
+var Tasks = {
   currentFilter: 'all',
 
   init() {
