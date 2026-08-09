@@ -1,7 +1,7 @@
 // js/data.js — localStorage data layer for Orbit
 // All data stored under 'orbit_' prefix
 
-const DB = {
+var DB = {
   KEYS: {
     TASKS: 'orbit_tasks',
     GOALS: 'orbit_goals',
