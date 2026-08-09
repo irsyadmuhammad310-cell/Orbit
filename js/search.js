@@ -1,6 +1,6 @@
 // js/search.js — Global search across all modules
 
-const Search = {
+var Search = {
   isOpen: false,
   query: '',
   results: [],
