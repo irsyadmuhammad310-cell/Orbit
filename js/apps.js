@@ -5,20 +5,38 @@ var App = {
   currentPage: 'overview',
 
   init() {
+    this.clearBlockingOverlays();
     this.bindNav();
     this.bindQuickAdd();
     this.updateGreeting();
-    // Render all pages
-    Overview.init();
-    Tasks.init();
-    Goals.init();
-    Projects.init();
-    Notes.init();
-    Calendar.init();
-    Settings.init();
+    // Initialize all modules (try-catch prevents one failure from breaking the rest)
+    var modules = [
+      ['Search', Search],
+      ['Overview', Overview],
+      ['Tasks', Tasks],
+      ['Goals', Goals],
+      ['Projects', Projects],
+      ['Notes', Notes],
+      ['Calendar', Calendar],
+      ['Settings', Settings],
+      ['Focus', Focus],
+    ];
+    modules.forEach(function(m) {
+      try { if (m[1] && m[1].init) m[1].init(); }
+      catch (e) { console.error('Orbit: ' + m[0] + '.init() failed:', e); }
+    });
     // Update counts after render
     this.updateCounts();
     this.updateWeeklyProgress();
+  },
+
+  // Remove any stuck overlays/modals that could block interaction
+  clearBlockingOverlays() {
+    document.querySelectorAll('.modal-overlay.open').forEach(function(el) {
+      el.classList.remove('open');
+    });
+    var focusOverlay = document.getElementById('focusOverlay');
+    if (focusOverlay && !Focus.isRunning) focusOverlay.remove();
   },
 
   bindNav() {
@@ -98,5 +116,9 @@ var App = {
   },
 };
 
-// Boot
-document.addEventListener('DOMContentLoaded', () => App.init());
+// Boot — handles both DOMContentLoaded and already-loaded states
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { App.init(); });
+} else {
+  App.init();
+}
