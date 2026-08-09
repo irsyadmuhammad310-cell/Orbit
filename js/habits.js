@@ -1,6 +1,6 @@
 // js/habits.js — Daily habits tracker with streaks
 
-const Habits = {
+var Habits = {
   STORAGE_KEY: 'orbit_habits',
   LOGS_KEY: 'orbit_habit_logs',
 
