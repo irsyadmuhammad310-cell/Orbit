@@ -1,6 +1,6 @@
 // js/overview.js — Dashboard / Overview page
 
-const Overview = {
+var Overview = {
   init() {
     this.render();
   },
