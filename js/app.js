@@ -35,9 +35,14 @@ var App = {
   render: function(page) {
     var modules = {
       home: Home, tasks: Tasks, calendar: Calendar, projects: Projects,
-      more: More, goals: Goals, habits: Habits, notes: Notes,
-      settings: Settings, search: Search, ai: AI,
-      docs: Documents, analytics: Analytics, focus: Focus,
+      more: typeof More !== 'undefined' ? More : null,
+      goals: Goals, habits: Habits, notes: Notes,
+      settings: Settings,
+      search: typeof Search !== 'undefined' ? Search : null,
+      ai: typeof AI !== 'undefined' ? AI : null,
+      docs: Documents,
+      analytics: typeof Analytics !== 'undefined' ? Analytics : null,
+      focus: typeof Focus !== 'undefined' ? Focus : null,
       reminders: Reminders, contacts: Contacts, expenses: Expenses
     };
     if (modules[page] && modules[page].render) modules[page].render();
