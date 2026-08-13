@@ -2,80 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Orbit</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
-<div class="app" id="app">
-  <!-- Header -->
-  <header class="header">
-    <div class="header-brand">Orbit</div>
-    <div class="header-greeting">Good evening, <strong id="userName">Irsyad</strong></div>
-    <div class="header-right">
-      <button class="btn btn--primary" id="quickAddBtn">+ Quick Add</button>
-      <div class="header-avatar" id="userAvatar">MI</div>
-    </div>
-  </header>
 
-  <!-- Sidebar -->
-  <nav class="sidebar" id="sidebar">
-    <div class="nav-group-label">Menu</div>
-    <div class="nav-item active" data-page="overview"><span class="nav-icon">🏠</span> Overview</div>
-    <div class="nav-item" data-page="tasks"><span class="nav-icon">✅</span> Tasks<span class="nav-count" id="taskCount">0</span></div>
-    <div class="nav-item" data-page="goals"><span class="nav-icon">🎯</span> Goals<span class="nav-count" id="goalCount">0</span></div>
-    <div class="nav-item" data-page="projects"><span class="nav-icon">🚀</span> Projects<span class="nav-count" id="projectCount">0</span></div>
-    <div class="nav-item" data-page="notes"><span class="nav-icon">📝</span> Notes<span class="nav-count" id="noteCount">0</span></div>
-    <div class="nav-item" data-page="calendar"><span class="nav-icon">📅</span> Calendar</div>
-    <div class="nav-group-label">System</div>
-    <div class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span> Settings</div>
-    <div class="sidebar-footer">
-      <div class="progress-mini"><span>Weekly Progress</span><span id="weeklyPct">0%</span></div>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="weeklyBar"></div></div>
-    </div>
-  </nav>
+<!-- Pages -->
+<div class="page active" id="pg-home"></div>
+<div class="page" id="pg-tasks"></div>
+<div class="page" id="pg-calendar"></div>
+<div class="page" id="pg-projects"></div>
+<div class="page" id="pg-more"></div>
+<div class="page" id="pg-goals"></div>
+<div class="page" id="pg-habits"></div>
+<div class="page" id="pg-notes"></div>
+<div class="page" id="pg-settings"></div>
+<div class="page" id="pg-search"></div>
+<div class="page" id="pg-ai"></div>
+<div class="page" id="pg-docs"></div>
+<div class="page" id="pg-analytics"></div>
+<div class="page" id="pg-focus"></div>
+<div class="page" id="pg-reminders"></div>
+<div class="page" id="pg-contacts"></div>
+<div class="page" id="pg-expenses"></div>
 
-  <!-- Main Content -->
-  <main class="main" id="mainContent">
-    <div class="page-view active" id="page-overview"></div>
-    <div class="page-view" id="page-tasks"></div>
-    <div class="page-view" id="page-goals"></div>
-    <div class="page-view" id="page-projects"></div>
-    <div class="page-view" id="page-notes"></div>
-    <div class="page-view" id="page-calendar"></div>
-    <div class="page-view" id="page-settings"></div>
-  </main>
+<!-- Bottom Nav -->
+<nav class="nav">
+  <button class="nav-b on" onclick="App.go('home')"><span>🏠</span><span>Home</span></button>
+  <button class="nav-b" onclick="App.go('tasks')"><span>✓</span><span>Tasks</span></button>
+  <button class="nav-b" onclick="App.go('calendar')"><span>📅</span><span>Calendar</span></button>
+  <button class="nav-b" onclick="App.go('projects')"><span>🚀</span><span>Projects</span></button>
+  <button class="nav-b" onclick="App.go('more')"><span>⋯</span><span>More</span></button>
+</nav>
+
+<!-- Bottom Sheet -->
+<div class="sheet-bg" id="sheetBg" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet"><div class="sheet-h"></div><div id="sheetContent"></div></div>
 </div>
 
-<!-- Modals -->
-<div class="modal-overlay" id="noteModal"></div>
-<div class="modal-overlay" id="addNoteModal"></div>
-<div class="modal-overlay" id="quickAddModal"></div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
-<!-- Undo Toast -->
-<div class="undo-toast" id="undoToast">
-  <span class="undo-toast-msg" id="undoToastMsg"></span>
-  <button class="undo-toast-btn" onclick="Undo.execute()">Undo</button>
-  <button class="undo-toast-close" onclick="Undo.hideToast()">✕</button>
-</div>
-
-<!-- Scripts (order matters!) -->
+<!-- Scripts (order matters! data.js first, app.js last) -->
 <script src="js/data.js"></script>
 <script src="js/seed.js"></script>
-<script src="js/undo.js"></script>
-<script src="js/search.js"></script>
-<script src="js/overview.js"></script>
+<script src="js/home.js"></script>
 <script src="js/tasks.js"></script>
-<script src="js/goals.js"></script>
-<script src="js/projects.js"></script>
-<script src="js/notes.js"></script>
 <script src="js/calendar.js"></script>
+<script src="js/projects.js"></script>
+<script src="js/tracker.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/intelligence.js"></script>
+<script src="js/contacts.js"></script>
 <script src="js/settings.js"></script>
-<script src="js/review.js"></script>
-<script src="js/focus.js"></script>
-<script src="js/habits.js"></script>
-<script src="js/insights.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
