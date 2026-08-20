@@ -9,12 +9,15 @@ var App = {
   calSelDay: new Date().getDate(),
 
   init: function() {
-    if (!DB.load()) {
-      DB.store = DB.defaultStore();
-      Seed.run();
-    }
-    this.applyTheme();
-    Home.render();
+    // Async boot: wait for IndexedDB to load before rendering
+    DB.boot().then(function(loaded) {
+      if (!loaded) {
+        DB.store = DB.defaultStore();
+        Seed.run();
+      }
+      App.applyTheme();
+      Home.render();
+    });
   },
 
   // Navigation
