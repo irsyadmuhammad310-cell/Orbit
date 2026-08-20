@@ -5,7 +5,7 @@ var AI = {
   render: function() {
     var msgs = DB.store.aiMsgs || [];
     var html = '<div class="pg-h"><div class="back" onclick="App.go(\'more\')">←</div><div class="pg-t" style="flex:1">AI</div></div>';
-    html += '<div class="chat-chips"><button class="chat-chip" onclick="AI.ask(\'What should I do today?\')"Today</button><button class="chat-chip" onclick="AI.ask(\'What is overdue?\')"Overdue</button><button class="chat-chip" onclick="AI.ask(\'Plan my day\')"Plan my day</button><button class="chat-chip" onclick="AI.ask(\'Which life area needs attention?\')"Life Areas</button></div>';
+    html += '<div class="chat-chips"><button class="chat-chip" onclick="AI.ask(\'What should I do today?\')">Today</button><button class="chat-chip" onclick="AI.ask(\'What is overdue?\')">Overdue</button><button class="chat-chip" onclick="AI.ask(\'Plan my day\')">Plan my day</button><button class="chat-chip" onclick="AI.ask(\'Which life area needs attention?\')">Life Areas</button></div>';
     html += '<div class="chat-wrap"><div class="chat-msgs" id="msgs">';
     if (msgs.length) msgs.forEach(function(m) { html += '<div class="chat-msg ' + m.role + '"><div class="bubble">' + m.text + '</div></div>'; });
     else html += '<div class="chat-msg ai"><div class="bubble">Ask about tasks, habits, deadlines, projects, life areas, or ask me to plan your day.</div></div>';
@@ -181,7 +181,8 @@ var Focus = {
     this.interval = setInterval(function() {
       Focus.seconds--;
       if (Focus.seconds <= 0) { clearInterval(Focus.interval); Focus.active = false; DB.add('focusSessions', { date: DB.todayKey(), duration: 25 }); toast('Session complete! 🎉'); }
-      Focus.render();
+      // Only re-render if focus page is visible
+      if (App.currentPage === 'focus') Focus.render();
     }, 1000);
     this.render();
   },
