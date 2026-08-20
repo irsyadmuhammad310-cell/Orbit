@@ -4,9 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#6366f1">
 <title>Orbit</title>
 <link rel="stylesheet" href="css/styles.css">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
 
@@ -60,5 +63,13 @@
 <script src="js/contacts.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/app.js"></script>
+<script>
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then(function(reg) {
+    console.log('Orbit SW registered:', reg.scope);
+  }).catch(function(e) { console.warn('SW registration failed:', e); });
+}
+</script>
 </body>
 </html>
