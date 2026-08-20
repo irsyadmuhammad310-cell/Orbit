@@ -55,23 +55,25 @@ body {
   color: var(--text);
   font-size: 15px;
   line-height: 1.5;
-  padding-bottom: 74px;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  overflow-x: hidden;
   transition: background .2s, color .2s;
+  -webkit-tap-highlight-color: transparent;
 }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 
 /* ===== PAGES ===== */
-.page { display: none; padding: 20px 16px 36px; max-width: 430px; margin: 0 auto; }
+.page { display: none; padding: 20px 16px 36px; max-width: 430px; margin: 0 auto; min-height: calc(100vh - 64px - env(safe-area-inset-bottom, 0px)); }
 .page.active { display: block; animation: fade .2s var(--ease); }
 @keyframes fade { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 /* ===== BOTTOM NAV ===== */
 .nav {
-  position: sticky; bottom: 0;
+  position: fixed; bottom: 0; left: 0; right: 0;
   display: flex; justify-content: space-around; align-items: center;
   background: var(--surface); border-top: 1px solid var(--border);
-  padding: 8px 0; z-index: 20;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 20;
   transition: background .2s, border-color .2s;
 }
 .nav-b {
@@ -91,7 +93,7 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 
 /* ===== CARDS ===== */
-.card, .proj, .goal, .panel, .warn, .doc, .week-card {
+.card, .proj, .goal, .panel, .doc, .week-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
   transition: background .2s, border-color .2s;
 }
@@ -133,6 +135,7 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
   border: 1px solid var(--border); background: var(--surface); color: var(--text2); white-space: nowrap;
 }
 .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.chip:active, .chat-chip:active { opacity: .7; }
 
 /* ===== QUICK ACTIONS ===== */
 .qa { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
@@ -142,6 +145,7 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
   min-height: 72px; cursor: pointer;
 }
+.qa-btn:active, .more-item:active { opacity: .7; transform: scale(.97); }
 .qa-ic, .more-ic { font-size: 20px; }
 
 /* ===== AI BRIEF ===== */
@@ -157,7 +161,7 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
 .warn {
   display: flex; gap: 8px; padding: 10px 12px; font-size: 12px;
   margin-bottom: 8px; background: var(--orangeBg); color: var(--orange);
-  border: none; border-radius: 10px;
+  border-radius: 10px;
 }
 
 /* ===== TIMELINE ===== */
@@ -192,9 +196,9 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
   transition: all .15s;
 }
 .hchk.done { background: var(--green); border-color: var(--green); color: #fff; }
-.hn { font-size: 14px; font-weight: 600; flex: 1; }
-.hs { font-size: 11px; color: var(--text3); }
-.hgrid { display: flex; gap: 2px; margin-left: auto; }
+.hn { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
+.hs { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+.hgrid { display: flex; gap: 2px; flex-shrink: 0; }
 .hcell { width: 7px; height: 7px; border-radius: 2px; background: var(--surface3); }
 .hcell.on { background: var(--green); }
 
@@ -279,7 +283,7 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
 
 /* ===== TOAST ===== */
 .toast {
-  position: fixed; bottom: 86px; left: 50%;
+  position: fixed; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); left: 50%;
   transform: translateX(-50%) translateY(20px);
   padding: 10px 20px; background: var(--text); color: var(--bg);
   font-size: 13px; font-weight: 600; border-radius: 24px;
@@ -358,3 +362,10 @@ h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0 0 4px;
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ===== ACTIVE STATES ===== */
+.tsk:active { background: var(--surface2); }
+.proj:active, .goal:active, .doc:active, .note:active { opacity: .85; }
+.set-r:active { background: var(--surface2); }
+.nav-b:active { opacity: .6; }
+.pg-btn:active, .back:active { opacity: .6; transform: scale(.92); }
