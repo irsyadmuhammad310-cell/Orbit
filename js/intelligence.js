@@ -31,6 +31,7 @@ var AI = {
     var ql = q.toLowerCase();
     var tasks = DB.getAll('tasks').filter(function(t) { return t.status === 'active'; });
     var today = DB.todayKey();
+    var NL = '\n';
 
     // Batch 6 Task 43: Daily Planning Mode
     if (ql.includes('plan') && (ql.includes('day') || ql.includes('today') || ql.includes('morning'))) {
@@ -38,29 +39,11 @@ var AI = {
       var overdue = tasks.filter(function(t) { return DB.daysBetween(t.due) < 0; });
       var events = DB.getAll('events').filter(function(e) { return DB.dateKey(new Date(e.date)) === today; });
       var habits = DB.getAll('habits').filter(function(h) { return !DB.store.habitLogs[h.id + '_' + today]; });
-      var plan = 'Daily Plan:
-
-';
-      if (overdue.length) plan += '🚨 CLEAR FIRST:
-' + overdue.slice(0,3).map(function(t) { return '• ' + t.title; }).join('
-') + '
-
-';
-      if (events.length) plan += '📅 EVENTS:
-' + events.map(function(e) { return '• ' + (e.time||'') + ' ' + e.title; }).join('
-') + '
-
-';
-      if (todayT.length) plan += '✓ TODAY\'S TASKS:
-' + todayT.map(function(t) { return '• ' + t.title + ' (' + t.pri + ')'; }).join('
-') + '
-
-';
-      if (habits.length) plan += '🔥 HABITS:
-' + habits.map(function(h) { return '• ' + h.icon + ' ' + h.name; }).join('
-') + '
-
-';
+      var plan = 'Daily Plan:' + NL + NL;
+      if (overdue.length) plan += '🚨 CLEAR FIRST:' + NL + overdue.slice(0,3).map(function(t) { return '• ' + t.title; }).join(NL) + NL + NL;
+      if (events.length) plan += '📅 EVENTS:' + NL + events.map(function(e) { return '• ' + (e.time||'') + ' ' + e.title; }).join(NL) + NL + NL;
+      if (todayT.length) plan += '✓ TODAY\'S TASKS:' + NL + todayT.map(function(t) { return '• ' + t.title + ' (' + t.pri + ')'; }).join(NL) + NL + NL;
+      if (habits.length) plan += '🔥 HABITS:' + NL + habits.map(function(h) { return '• ' + h.icon + ' ' + h.name; }).join(NL) + NL + NL;
       plan += '💡 Suggestion: Start with overdue items, then high-priority tasks. Fit habits into transition moments.';
       return plan;
     }
@@ -69,12 +52,7 @@ var AI = {
       var d = new Date(); d.setDate(d.getDate()+1); var k = DB.dateKey(d);
       var ev = DB.getAll('events').filter(function(e) { return DB.dateKey(new Date(e.date)) === k; });
       var td = tasks.filter(function(t) { return t.due && DB.dateKey(new Date(t.due)) === k; });
-      return 'Tomorrow\'s Plan:
-Morning: ' + (ev[0] ? ev[0].title + ' ' + (ev[0].time||'') : 'Focus work') + '
-Afternoon: ' + (td[0] ? td[0].title : 'Clear overdue') + '
-Evening: Review + habits.
-
-This is a suggestion only.';
+      return 'Tomorrow\'s Plan:' + NL + 'Morning: ' + (ev[0] ? ev[0].title + ' ' + (ev[0].time||'') : 'Focus work') + NL + 'Afternoon: ' + (td[0] ? td[0].title : 'Clear overdue') + NL + 'Evening: Review + habits.' + NL + NL + 'This is a suggestion only.';
     }
 
     // Batch 6 Task 44: Life Areas
@@ -84,65 +62,41 @@ This is a suggestion only.';
       var overduePer = {};
       tasks.filter(function(t) { return DB.daysBetween(t.due) < 0; }).forEach(function(t) { var a = t.lifeArea || 'Unassigned'; overduePer[a] = (overduePer[a]||0) + 1; });
       var needsAttention = Object.keys(overduePer).sort(function(a,b) { return overduePer[b] - overduePer[a]; });
-      if (needsAttention.length) return 'Life areas needing attention:
-' + needsAttention.map(function(a) { return '• ' + a + ': ' + overduePer[a] + ' overdue'; }).join('
-') + '
-
-Focus on ' + needsAttention[0] + ' first.';
+      if (needsAttention.length) return 'Life areas needing attention:' + NL + needsAttention.map(function(a) { return '• ' + a + ': ' + overduePer[a] + ' overdue'; }).join(NL) + NL + NL + 'Focus on ' + needsAttention[0] + ' first.';
       return 'All life areas look balanced. No overdue items by area.';
     }
 
     if (ql.includes('overdue')) {
       var ov = tasks.filter(function(t) { return DB.daysBetween(t.due) < 0; });
-      return ov.length ? ov.length + ' overdue:
-' + ov.map(function(t) { return '• ' + t.title; }).join('
-') : 'No overdue tasks!';
+      return ov.length ? ov.length + ' overdue:' + NL + ov.map(function(t) { return '• ' + t.title; }).join(NL) : 'No overdue tasks!';
     }
 
     if (ql.includes('today') || ql.includes('should')) {
       var tt = tasks.filter(function(t) { return t.due && DB.dateKey(new Date(t.due)) === today; });
-      return tt.length ? 'Today:
-' + tt.map(function(t) { return '• ' + t.title + ' (' + t.pri + ')'; }).join('
-') : 'Nothing due today.';
+      return tt.length ? 'Today:' + NL + tt.map(function(t) { return '• ' + t.title + ' (' + t.pri + ')'; }).join(NL) : 'Nothing due today.';
     }
 
     if (ql.includes('habit')) {
       var missed = DB.getAll('habits').filter(function(h) { return !DB.store.habitLogs[h.id + '_' + today]; });
-      return missed.length ? 'Still to do:
-' + missed.map(function(h) { return '• ' + h.icon + ' ' + h.name; }).join('
-') : 'All habits done!';
+      return missed.length ? 'Still to do:' + NL + missed.map(function(h) { return '• ' + h.icon + ' ' + h.name; }).join(NL) : 'All habits done!';
     }
 
     if (ql.includes('project')) {
       var withOv = DB.getAll('projects').filter(function(p) { return tasks.some(function(t) { return t.projId===p.id && DB.daysBetween(t.due)<0; }); });
-      return withOv.length ? 'Projects needing attention:
-' + withOv.map(function(p) { return '• ' + p.name; }).join('
-') : 'All projects on track.';
+      return withOv.length ? 'Projects needing attention:' + NL + withOv.map(function(p) { return '• ' + p.name; }).join(NL) : 'All projects on track.';
     }
 
     if (ql.includes('subscription') || ql.includes('renew')) {
       var subs = DB.getAll('expenses').filter(function(e) { return e.type === 'subscription'; });
-      return subs.length ? 'Subscriptions:
-' + subs.map(function(e) { return '• ' + e.title + ' (RM ' + e.amount + '/' + e.freq + ')'; }).join('
-') : 'No subscriptions tracked.';
+      return subs.length ? 'Subscriptions:' + NL + subs.map(function(e) { return '• ' + e.title + ' (RM ' + e.amount + '/' + e.freq + ')'; }).join(NL) : 'No subscriptions tracked.';
     }
 
     if (ql.includes('contact') || ql.includes('follow')) {
       var contacts = DB.getAll('contacts').filter(function(c) { return c.nextFollowUp && DB.daysBetween(c.nextFollowUp) <= 7; });
-      return contacts.length ? 'Follow-ups due:
-' + contacts.map(function(c) { return '• ' + c.name + ' (' + DB.fmtDue(c.nextFollowUp) + ')'; }).join('
-') : 'No follow-ups due this week.';
+      return contacts.length ? 'Follow-ups due:' + NL + contacts.map(function(c) { return '• ' + c.name + ' (' + DB.fmtDue(c.nextFollowUp) + ')'; }).join(NL) : 'No follow-ups due this week.';
     }
 
-    return 'I can help with:
-• Plan my day
-• What is overdue?
-• Which life area needs attention?
-• Today\'s tasks
-• Habits status
-• Project health
-• Subscriptions
-• Follow-up contacts';
+    return 'I can help with:' + NL + '• Plan my day' + NL + '• What is overdue?' + NL + '• Which life area needs attention?' + NL + '• Today\'s tasks' + NL + '• Habits status' + NL + '• Project health' + NL + '• Subscriptions' + NL + '• Follow-up contacts';
   }
 };
 
