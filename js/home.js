@@ -25,16 +25,18 @@ var Home = {
     if (events.length) brief += events.length + ' event' + (events.length > 1 ? 's' : '') + '. ';
     if (!brief) brief = 'Clear day.';
 
-    // Warnings
-    var warnings = [];
-    if (overdue.length) warnings.push(overdue.length + ' overdue task' + (overdue.length > 1 ? 's' : ''));
-    var expDocs = S.documents.filter(function(d) { var db = DB.daysBetween(d.expiry); return db >= 0 && db <= 90; });
-    if (expDocs.length) warnings.push(expDocs.length + ' document' + (expDocs.length > 1 ? 's' : '') + ' expiring soon');
+    // Warnings (from Automation engine)
+    var warnings = typeof Automation !== 'undefined' ? Automation.check() : [];
+    if (!warnings.length) {
+      if (overdue.length) warnings.push({ type: 'warn', text: overdue.length + ' overdue task' + (overdue.length > 1 ? 's' : '') });
+      var expDocs = S.documents.filter(function(d) { var db = DB.daysBetween(d.expiry); return db >= 0 && db <= 90; });
+      if (expDocs.length) warnings.push({ type: 'warn', text: expDocs.length + ' document' + (expDocs.length > 1 ? 's' : '') + ' expiring soon' });
+    }
 
     var html = '<h1>' + App.greeting() + ', ' + DB.esc(S.settings.name) + '.</h1>';
     html += '<p class="sub">' + todayT.length + ' tasks today' + (overdue.length ? ', ' + overdue.length + ' overdue' : '') + '</p>';
     html += '<div class="ai"><div class="ai-l">✨ AI Brief</div><div class="ai-t">' + brief + '</div></div>';
-    warnings.forEach(function(w) { html += '<div class="warn">' + w + '</div>'; });
+    warnings.forEach(function(w) { html += '<div class="warn">' + (w.text || w) + '</div>'; });
     html += '<div class="grid"><div class="card"><div class="card-v">' + todayT.length + '</div><div class="card-l">Tasks Today</div></div><div class="card"><div class="card-v">' + overdue.length + '</div><div class="card-l">Overdue</div></div><div class="card"><div class="card-v">' + events.length + '</div><div class="card-l">Events</div></div><div class="card"><div class="card-v">' + hDone + '/' + S.habits.length + '</div><div class="card-l">Habits</div></div></div>';
 
     if (tl.length) {
