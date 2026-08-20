@@ -39,7 +39,11 @@ var Tasks = {
     if (t.rec === 'daily') d.setDate(d.getDate() + 1);
     if (t.rec === 'weekly') d.setDate(d.getDate() + 7);
     if (t.rec === 'monthly') d.setMonth(d.getMonth() + 1);
-    DB.add('tasks', { title: t.title, desc: t.desc, due: d.toISOString(), pri: t.pri, status: 'active', projId: t.projId, cat: t.cat, rec: t.rec, lifeArea: t.lifeArea });
+    var nextDue = d.toISOString();
+    // Prevent duplicates: check if next occurrence already exists
+    var exists = DB.getAll('tasks').some(function(x) { return x.title === t.title && x.status === 'active' && x.due && Math.abs(new Date(x.due) - d) < 86400000; });
+    if (exists) return;
+    DB.add('tasks', { title: t.title, desc: t.desc, due: nextDue, pri: t.pri, status: 'active', projId: t.projId, cat: t.cat, rec: t.rec, lifeArea: t.lifeArea });
   },
 
   view: function(id) {
