@@ -9,7 +9,7 @@
 <title>Orbit</title>
 <link rel="stylesheet" href="css/styles.css">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
 
@@ -64,11 +64,40 @@
 <script src="js/settings.js"></script>
 <script src="js/app.js"></script>
 <script>
-// Register Service Worker
+// Register Service Worker + auto-update detection
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(function(reg) {
     console.log('Orbit SW registered:', reg.scope);
+    // Check for updates every 30 min
+    setInterval(function() { reg.update(); }, 30 * 60 * 1000);
+    // Detect new version
+    reg.onupdatefound = function() {
+      var nw = reg.installing;
+      if (!nw) return;
+      nw.onstatechange = function() {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+          showOrbitUpdateBanner();
+        }
+      };
+    };
   }).catch(function(e) { console.warn('SW registration failed:', e); });
+}
+function showOrbitUpdateBanner() {
+  if (document.getElementById('orbitUpdate')) return;
+  var html = '<div id="orbitUpdate" style="position:fixed;bottom:74px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:14px 18px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:200;max-width:340px;width:90%;animation:fade .2s var(--ease)">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:13px;font-weight:700">Update Available ✨</span><button onclick="document.getElementById(\'orbitUpdate\').remove()" style="border:none;background:none;color:var(--text3);font-size:18px;cursor:pointer">&times;</button></div>';
+  html += '<div style="font-size:11px;color:var(--text2);margin-bottom:12px">A new version of Orbit is ready. Update now to get the latest features.</div>';
+  html += '<div style="display:flex;gap:8px"><button onclick="applyOrbitUpdate()" style="flex:1;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;cursor:pointer">Update Now</button><button onclick="document.getElementById(\'orbitUpdate\').remove()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text2);font-size:12px;cursor:pointer">Later</button></div>';
+  html += '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+function applyOrbitUpdate() {
+  var banner = document.getElementById('orbitUpdate');
+  if (banner) banner.innerHTML = '<div style="padding:12px;font-size:11px;color:var(--text2);text-align:center">Updating...</div>';
+  navigator.serviceWorker.ready.then(function(reg) {
+    if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    setTimeout(function() { location.reload(); }, 800);
+  });
 }
 </script>
 </body>
