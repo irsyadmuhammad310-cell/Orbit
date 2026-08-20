@@ -50,7 +50,7 @@ var Habits = {
         var str = Habits.getStreak(h.id);
         var cells = '';
         for (var i = 20; i >= 0; i--) { var dd = new Date(); dd.setDate(dd.getDate()-i); cells += '<div class="hcell' + (DB.store.habitLogs[h.id+'_'+DB.dateKey(dd)] ? ' on' : '') + '"></div>'; }
-        return '<div class="hab"><div class="hchk' + (done?' done':'') + '" onclick="Habits.toggle(\'' + h.id + '\')">✓</div><div class="hn">' + h.icon + ' ' + DB.esc(h.name) + '</div><div class="hs">' + (str>0?'🔥 '+str:'—') + '</div><div class="hgrid">' + cells + '</div></div>';
+        return '<div class="hab"><div class="hchk' + (done?' done':'') + '" onclick="Habits.toggle(\'' + h.id + '\')">✓</div><div class="hn">' + h.icon + ' ' + DB.esc(h.name) + '</div><div class="hs">' + (str>0?'🔥 '+str:'—') + '</div><div class="hgrid">' + cells + '</div><button style="border:none;background:none;color:var(--text3);font-size:14px;padding:4px;cursor:pointer" onclick="event.stopPropagation();Habits.del(\'' + h.id + '\')">✕</button></div>';
       }).join('') : '<div class="empty"><div class="empty-ic">🔥</div>Add a habit</div>');
   },
 
@@ -63,8 +63,11 @@ var Habits = {
 
   getStreak: function(hid) {
     var s = 0, d = new Date();
-    if (!DB.store.habitLogs[hid + '_' + DB.dateKey(d)]) d.setDate(d.getDate()-1);
-    while (DB.store.habitLogs[hid + '_' + DB.dateKey(d)]) { s++; d.setDate(d.getDate()-1); }
+    // Start counting from yesterday if today isn't logged yet
+    if (!DB.store.habitLogs[hid + '_' + DB.dateKey(d)]) {
+      d.setDate(d.getDate() - 1);
+    }
+    while (DB.store.habitLogs[hid + '_' + DB.dateKey(d)]) { s++; d.setDate(d.getDate() - 1); }
     return s;
   },
 
@@ -122,5 +125,13 @@ var Habits = {
     if (!vReq(n, 'Enter name')) return;
     DB.add('habits', { name: n, icon: document.getElementById('hi').value || '⭐', lifeArea: document.getElementById('hla').value });
     closeSheet(); toast('Added'); this.render();
+  },
+
+  del: function(id) {
+    if (!confirm('Delete this habit?')) return;
+    DB.remove('habits', id);
+    // Clean up habit logs for this habit
+    Object.keys(DB.store.habitLogs).forEach(function(k) { if (k.startsWith(id + '_')) delete DB.store.habitLogs[k]; });
+    DB.save(); toast('Deleted'); this.render();
   }
 };
