@@ -1,10 +1,22 @@
 // js/data.js — Data layer for Orbit
-// All data stored under 'orbit_v1' key in localStorage
-// MUST load first in index.html
+// DUAL-WRITE: IndexedDB (primary) + localStorage (backup)
+// In-memory _store populated from IDB on boot, fallback to localStorage
+// MUST load first in index.html. Boot is ASYNC (App.init waits for DB.boot())
 
 var DB = {
-  KEY: 'orbit_v1',
-  FALLBACK_KEY: 'orbit_v11', // migration from older builds
+  // IndexedDB config
+  IDB_NAME: 'OrbitDB',
+  IDB_VERSION: 1,
+  IDB_STORE: 'orbit_data',
+  IDB_KEY: 'main',
+
+  // localStorage keys (backup + migration)
+  LS_KEY: 'orbit_v1',
+  LS_FALLBACK: 'orbit_v11',
+
+  // In-memory store (all reads come from here)
+  store: null,
+  _db: null, // IDB instance
 
   // Default store structure
   defaultStore: function() {
@@ -26,91 +38,154 @@ var DB = {
     };
   },
 
-  // In-memory store
-  store: null,
+  // ===== IndexedDB Operations =====
+  openIDB: function() {
+    return new Promise(function(resolve, reject) {
+      var request = indexedDB.open(DB.IDB_NAME, DB.IDB_VERSION);
+      request.onupgradeneeded = function(e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(DB.IDB_STORE)) {
+          db.createObjectStore(DB.IDB_STORE);
+        }
+      };
+      request.onsuccess = function(e) {
+        DB._db = e.target.result;
+        resolve(DB._db);
+      };
+      request.onerror = function(e) {
+        console.error('Orbit IDB: open failed', e);
+        reject(e);
+      };
+    });
+  },
 
-  // Load from localStorage
-  load: function() {
-    try {
-      var raw = localStorage.getItem(this.KEY) || localStorage.getItem(this.FALLBACK_KEY);
-      if (raw) {
-        this.store = JSON.parse(raw);
-        // Ensure all arrays exist (migration safety)
-        var def = this.defaultStore();
-        Object.keys(def).forEach(function(k) {
-          if (this.store[k] === undefined) this.store[k] = def[k];
-        }.bind(this));
+  idbGet: function() {
+    return new Promise(function(resolve, reject) {
+      if (!DB._db) { resolve(null); return; }
+      var tx = DB._db.transaction(DB.IDB_STORE, 'readonly');
+      var store = tx.objectStore(DB.IDB_STORE);
+      var req = store.get(DB.IDB_KEY);
+      req.onsuccess = function() { resolve(req.result || null); };
+      req.onerror = function() { resolve(null); };
+    });
+  },
+
+  idbSet: function(data) {
+    return new Promise(function(resolve, reject) {
+      if (!DB._db) { resolve(); return; }
+      var tx = DB._db.transaction(DB.IDB_STORE, 'readwrite');
+      var store = tx.objectStore(DB.IDB_STORE);
+      store.put(data, DB.IDB_KEY);
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { resolve(); };
+    });
+  },
+
+  // ===== Boot (async) =====
+  boot: function() {
+    return DB.openIDB().then(function() {
+      return DB.idbGet();
+    }).then(function(idbData) {
+      if (idbData) {
+        DB.store = idbData;
+        DB._ensureSchema();
+        console.log('Orbit: loaded from IndexedDB');
         return true;
       }
-    } catch(e) { console.error('Orbit: load failed', e); }
+      return DB._loadFromLS();
+    }).catch(function(err) {
+      console.error('Orbit: IDB boot failed, fallback to localStorage', err);
+      return DB._loadFromLS();
+    });
+  },
+
+  _loadFromLS: function() {
+    try {
+      var raw = localStorage.getItem(DB.LS_KEY) || localStorage.getItem(DB.LS_FALLBACK);
+      if (raw) {
+        DB.store = JSON.parse(raw);
+        DB._ensureSchema();
+        DB.idbSet(DB.store); // Migrate to IDB
+        console.log('Orbit: migrated from localStorage to IndexedDB');
+        return true;
+      }
+    } catch(e) { console.error('Orbit: localStorage read failed', e); }
     return false;
   },
 
-  // Save to localStorage
-  save: function() {
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.store)); } catch(e) {}
+  _ensureSchema: function() {
+    var def = DB.defaultStore();
+    Object.keys(def).forEach(function(k) {
+      if (DB.store[k] === undefined) DB.store[k] = def[k];
+    });
   },
 
-  // Generate unique ID
-  uid: function() { return Math.random().toString(36).slice(2, 10); },
+  // ===== DUAL-WRITE Save =====
+  // Writes to BOTH IndexedDB and localStorage simultaneously
+  // Never clears localStorage (same rule as FinTrack)
+  save: function() {
+    DB.idbSet(DB.store); // async, non-blocking
+    try { localStorage.setItem(DB.LS_KEY, JSON.stringify(DB.store)); } catch(e) {}
+  },
 
-  // Get all items from a collection
+  // ===== CRUD (reads from in-memory store) =====
+  uid: function() { if (crypto.randomUUID) return crypto.randomUUID(); return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); }); },
+
   getAll: function(collection) { return this.store[collection] || []; },
 
-  // Get by ID
   get: function(collection, id) {
     return (this.store[collection] || []).find(function(x) { return x.id === id; }) || null;
   },
 
-  // Add item
   add: function(collection, item) {
     if (!item.id) item.id = this.uid();
     if (!item.createdAt) item.createdAt = new Date().toISOString();
+    item.updatedAt = new Date().toISOString();
     this.store[collection].push(item);
     this.save();
     return item;
   },
 
-  // Update item
   update: function(collection, id, updates) {
     var items = this.store[collection];
     var idx = items.findIndex(function(x) { return x.id === id; });
     if (idx === -1) return null;
     Object.assign(items[idx], updates);
+    items[idx].updatedAt = new Date().toISOString();
     this.save();
     return items[idx];
   },
 
-  // Remove item
   remove: function(collection, id) {
     this.store[collection] = this.store[collection].filter(function(x) { return x.id !== id; });
     this.save();
   },
 
-  // Export all data
+  // ===== Export / Import =====
   exportAll: function() {
-    return JSON.stringify({ version: '1.1.1', exportedAt: new Date().toISOString(), data: this.store }, null, 2);
+    return JSON.stringify({ version: '1.5.0', exportedAt: new Date().toISOString(), data: this.store }, null, 2);
   },
 
-  // Import data
   importAll: function(json) {
     var raw = JSON.parse(json);
     if (!raw.data || !raw.data.tasks) throw new Error('Invalid backup');
     this.store = raw.data;
-    var def = this.defaultStore();
-    Object.keys(def).forEach(function(k) {
-      if (this.store[k] === undefined) this.store[k] = def[k];
-    }.bind(this));
+    this._ensureSchema();
     this.save();
   },
 
-  // Clear all
   clearAll: function() {
-    localStorage.removeItem(this.KEY);
-    localStorage.removeItem(this.FALLBACK_KEY);
+    localStorage.removeItem(this.LS_KEY);
+    localStorage.removeItem(this.LS_FALLBACK);
+    if (this._db) {
+      var tx = this._db.transaction(this.IDB_STORE, 'readwrite');
+      var req = tx.objectStore(this.IDB_STORE).delete(this.IDB_KEY);
+      req.onsuccess = function() { console.log('Orbit: IDB cleared'); };
+    }
+    this.store = this.defaultStore();
   },
 
-  // Helpers
+  // ===== Helpers =====
   dateKey: function(d) { return d.toISOString().split('T')[0]; },
   todayKey: function() { return this.dateKey(new Date()); },
   daysBetween: function(iso) {
@@ -137,7 +212,7 @@ var DB = {
   priColor: function(p) {
     return { critical: 'var(--red)', high: 'var(--orange)', medium: 'var(--blue)', low: 'var(--text3)' }[p] || 'var(--text3)';
   },
-  esc: function(s) { return s ? s.replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; },
+  esc: function(s) { if (!s) return ''; return String(s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"'); },
   projName: function(id) {
     var p = this.get('projects', id);
     return p ? p.name : '';
