@@ -3,20 +3,26 @@
 
 var Reminders = {
   render: function() {
-    var reminders = DB.getAll('reminders').filter(function(r) { return !r.done; });
+    var reminders = DB.getAll('reminders');
+    var active = reminders.filter(function(r) { return !r.done; });
+    var done = reminders.filter(function(r) { return r.done; });
     document.getElementById('pg-reminders').innerHTML = '<div class="pg-h"><div class="back" onclick="App.go(\'more\')">←</div><div class="pg-t" style="flex:1">Reminders</div><div class="pg-btn" onclick="Reminders.openForm()">+</div></div>' +
-      (reminders.length ? reminders.map(function(r) {
-        return '<div class="tsk"><div class="tchk' + (r.done?' done':'') + '" onclick="Reminders.toggle(\'' + r.id + '\')">✓</div><div style="flex:1"><div class="tt">' + DB.esc(r.title) + '</div><div class="tm">' + (r.time||'') + ' · ' + DB.fmtDue(r.date) + '</div></div>' + (r.date ? '<span class="badge ' + DB.dueClass(r.date) + '">' + DB.fmtDue(r.date) + '</span>' : '') + '</div>';
-      }).join('') : '<div class="empty"><div class="empty-ic">🔔</div>No reminders</div>');
+      (active.length ? active.map(function(r) {
+        var freq = r.repeat === 'monthly' ? '🔄 Monthly' : r.repeat === 'yearly' ? '🔄 Yearly' : r.repeat === 'weekly' ? '🔄 Weekly' : '';
+        return '<div class="tsk"><div class="tchk" onclick="Reminders.toggle(\'' + r.id + '\')">✓</div><div style="flex:1"><div class="tt">' + DB.esc(r.title) + '</div><div class="tm">' + (r.time||'') + ' · ' + DB.fmtDue(r.date) + (freq ? ' · ' + freq : '') + '</div></div>' + (r.date ? '<span class="badge ' + DB.dueClass(r.date) + '">' + DB.fmtDue(r.date) + '</span>' : '') + '</div>';
+      }).join('') : '<div class="empty"><div class="empty-ic">🔔</div>No active reminders</div>') +
+      (done.length ? '<div class="sec">Done (' + done.length + ')</div>' + done.slice(0,5).map(function(r) {
+        return '<div class="tsk" style="opacity:.5"><div class="tchk done" onclick="Reminders.toggle(\'' + r.id + '\')">✓</div><div style="flex:1"><div class="tt done">' + DB.esc(r.title) + '</div></div></div>';
+      }).join('') : '');
   },
   toggle: function(id) { var r = DB.get('reminders', id); if (r) r.done = !r.done; DB.save(); toast(r.done?'Done':'Reopened'); this.render(); },
   openForm: function() {
-    openSheet('<div class="sheet-title">New Reminder</div><div class="fg"><label class="fl">What to remember</label><input class="fi" id="rt" placeholder="Renew passport"></div><div class="fr"><div class="fg"><label class="fl">Date</label><input class="fi" id="rd" type="date"></div><div class="fg"><label class="fl">Time</label><input class="fi" id="rtm" type="time"></div></div><button class="btn" onclick="Reminders.saveNew()">Add</button>');
+    openSheet('<div class="sheet-title">New Reminder</div><div class="fg"><label class="fl">What to remember</label><input class="fi" id="rt" placeholder="Renew passport"></div><div class="fr"><div class="fg"><label class="fl">Date</label><input class="fi" id="rd" type="date"></div><div class="fg"><label class="fl">Time</label><input class="fi" id="rtm" type="time"></div></div><div class="fg"><label class="fl">Repeat</label><select class="fs" id="rrp"><option value="">Once (no repeat)</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div><button class="btn" onclick="Reminders.saveNew()">Add Reminder</button>');
   },
   saveNew: function() {
     var v = document.getElementById('rt').value.trim();
     if (!vReq(v, 'Enter reminder')) return;
-    DB.add('reminders', { title: v, date: document.getElementById('rd').value ? new Date(document.getElementById('rd').value+'T12:00:00').toISOString() : null, time: document.getElementById('rtm').value, done: false });
+    DB.add('reminders', { title: v, date: document.getElementById('rd').value ? new Date(document.getElementById('rd').value+'T12:00:00').toISOString() : null, time: document.getElementById('rtm').value, repeat: document.getElementById('rrp').value || null, done: false });
     closeSheet(); toast('Reminder added'); this.render();
   }
 };
