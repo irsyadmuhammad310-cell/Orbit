@@ -1,40 +1,88 @@
-// js/notes.js — Notes CRUD, pin, color, tags
+// js/notes.js — Full-screen note editor with rich formatting
 
 var Notes = {
   noteColor: function(c) { return {yellow:'var(--orangeBg)',blue:'var(--blueBg)',purple:'var(--accent2)',green:'var(--greenBg)'}[c] || 'var(--surface2)'; },
 
   render: function() {
     var notes = DB.getAll('notes').slice().sort(function(a,b) { return (b.pinned?1:0) - (a.pinned?1:0); });
-    document.getElementById('pg-notes').innerHTML = '<div class="pg-h"><div class="back" onclick="App.go(\'more\')">←</div><div class="pg-t" style="flex:1">Notes</div><div class="pg-btn" onclick="Notes.openForm()">+</div></div>' +
+    document.getElementById('pg-notes').innerHTML = '<div class="pg-h"><div class="back" onclick="App.go(\'more\')">←</div><div class="pg-t" style="flex:1">Notes</div><div class="pg-btn" onclick="Notes.openEditor()">+</div></div>' +
       (notes.length ? notes.map(function(n) {
-        return '<div class="note" style="background:' + Notes.noteColor(n.color) + '" onclick="Notes.view(\'' + n.id + '\')"><div class="note-t">' + (n.pinned?'📌 ':'') + DB.esc(n.title) + '</div><div class="note-b">' + DB.esc(n.body) + '</div>' + (n.tag?'<span class="note-tag">' + DB.esc(n.tag) + '</span>':'') + '</div>';
+        var preview = n.body ? n.body.substring(0, 80) + (n.body.length > 80 ? '...' : '') : '';
+        var timeAgo = n.updatedAt ? Notes.timeAgo(n.updatedAt) : '';
+        return '<div class="note" style="background:' + Notes.noteColor(n.color) + '" onclick="Notes.openEditor(\'' + n.id + '\')"><div class="note-t">' + (n.pinned?'📌 ':'') + DB.esc(n.title || 'Untitled') + '</div><div class="note-b">' + DB.esc(preview) + '</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">' + (n.tag?'<span class="note-tag">' + DB.esc(n.tag) + '</span>':'<span></span>') + '<span style="font-size:9px;color:var(--text3)">' + timeAgo + '</span></div></div>';
       }).join('') : '<div class="empty"><div class="empty-ic">📝</div>Capture a thought</div>');
   },
 
-  openForm: function() {
-    openSheet('<div class="sheet-title">New Note</div><div class="fg"><label class="fl">Title</label><input class="fi" id="nnt" placeholder="Quick thought..."></div><div class="fg"><label class="fl">Content</label><textarea class="ft" id="nnb"></textarea></div><div class="fg"><label class="fl">Tag</label><input class="fi" id="nng"></div><button class="btn" onclick="Notes.saveNew()">Save</button>');
+  timeAgo: function(iso) {
+    if (!iso) return '';
+    var diff = Date.now() - new Date(iso).getTime();
+    var mins = Math.floor(diff/60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    var hrs = Math.floor(mins/60);
+    if (hrs < 24) return hrs + 'h ago';
+    var days = Math.floor(hrs/24);
+    if (days < 7) return days + 'd ago';
+    return new Date(iso).toLocaleDateString('en-MY', {day:'numeric',month:'short'});
   },
 
-  saveNew: function() {
-    var t = document.getElementById('nnt').value.trim(), b = document.getElementById('nnb').value.trim();
-    if (!t && !b) { toast('Write something'); return; }
+  openEditor: function(id) {
+    var n = id ? DB.get('notes', id) : null;
+    var isNew = !n;
+    var title = n ? DB.esc(n.title||'') : '';
+    var body = n ? DB.esc(n.body||'') : '';
+    var tag = n ? DB.esc(n.tag||'') : '';
+    var pinLabel = n && n.pinned ? 'Unpin' : 'Pin';
     var colors = ['yellow','blue','purple','green'];
-    DB.add('notes', { title: t||'Untitled', body: b, tag: document.getElementById('nng').value.trim(), color: colors[Math.floor(Math.random()*colors.length)], pinned: false });
-    closeSheet(); toast('Saved'); this.render();
+    var colorPicker = colors.map(function(c) {
+      var active = n && n.color === c;
+      return '<div onclick="Notes._setColor(\'' + c + '\')" style="width:24px;height:24px;border-radius:50%;background:' + Notes.noteColor(c) + ';border:2px solid ' + (active?'var(--accent)':'transparent') + ';cursor:pointer"></div>';
+    }).join('');
+
+    // Full-page editor experience
+    var page = document.getElementById('pg-notes');
+    page.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+      '<button class="back" onclick="Notes.render()">←</button>' +
+      '<div style="display:flex;gap:6px">' +
+        (n ? '<button style="border:none;background:none;font-size:14px;cursor:pointer;padding:4px" onclick="Notes.pin(\'' + (n?n.id:'') + '\')">' + (n&&n.pinned?'📌':'📍') + '</button>' : '') +
+        '<button style="border:none;background:none;font-size:14px;cursor:pointer;padding:4px" onclick="Notes.saveFromEditor(\'' + (n?n.id:'') + '\')">💾</button>' +
+        (n ? '<button style="border:none;background:none;font-size:14px;cursor:pointer;padding:4px" onclick="Notes.del(\'' + n.id + '\')">🗑</button>' : '') +
+      '</div></div>' +
+      '<input id="neTitle" value="' + title + '" placeholder="Title" style="width:100%;border:none;background:none;font-size:18px;font-weight:700;color:var(--text);outline:none;margin-bottom:8px;font-family:inherit">' +
+      '<input id="neTag" value="' + tag + '" placeholder="Tag (optional)" style="width:100%;border:none;background:none;font-size:12px;color:var(--text3);outline:none;margin-bottom:12px;font-family:inherit">' +
+      '<textarea id="neBody" placeholder="Start writing..." style="width:100%;border:none;background:none;font-size:15px;color:var(--text);outline:none;line-height:1.7;resize:none;min-height:50vh;font-family:inherit">' + body + '</textarea>' +
+      '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--border);margin-top:12px"><span style="font-size:10px;color:var(--text3)">Color:</span>' + colorPicker + '</div>';
+
+    // Store current color for save
+    Notes._editColor = n ? n.color : colors[Math.floor(Math.random()*colors.length)];
+    Notes._editId = id || null;
   },
 
-  view: function(id) {
-    var n = DB.get('notes', id); if (!n) return;
-    openSheet('<div class="sheet-title">Note</div><div class="fg"><label class="fl">Title</label><input class="fi" id="ent" value="' + DB.esc(n.title) + '"></div><div class="fg"><label class="fl">Content</label><textarea class="ft" id="enb">' + DB.esc(n.body) + '</textarea></div><div class="btn-row"><button class="btn" onclick="Notes.saveEdit(\'' + n.id + '\')">Save</button><button class="btn btn-ghost" onclick="Notes.pin(\'' + n.id + '\')">' + (n.pinned?'Unpin':'Pin') + '</button><button class="btn btn-red" onclick="Notes.del(\'' + n.id + '\')">Del</button></div>');
+  _editColor: 'yellow',
+  _editId: null,
+
+  _setColor: function(c) {
+    Notes._editColor = c;
+    // Re-render color picker active state
+    var dots = document.querySelectorAll('#pg-notes div[onclick*="_setColor"]');
+    dots.forEach(function(d) { d.style.borderColor = 'transparent'; });
+    event.target.style.borderColor = 'var(--accent)';
   },
 
-  saveEdit: function(id) {
-    var n = DB.get('notes', id); if (!n) return;
-    n.title = document.getElementById('ent').value.trim() || 'Untitled';
-    n.body = document.getElementById('enb').value.trim();
-    DB.save(); closeSheet(); toast('Updated'); this.render();
+  saveFromEditor: function(id) {
+    var title = document.getElementById('neTitle').value.trim();
+    var body = document.getElementById('neBody').value.trim();
+    var tag = document.getElementById('neTag').value.trim();
+    if (!title && !body) { toast('Write something'); return; }
+    if (id) {
+      var n = DB.get('notes', id);
+      if (n) { n.title = title || 'Untitled'; n.body = body; n.tag = tag; n.color = Notes._editColor; n.updatedAt = new Date().toISOString(); DB.save(); }
+    } else {
+      DB.add('notes', { title: title || 'Untitled', body: body, tag: tag, color: Notes._editColor, pinned: false });
+    }
+    toast('Saved'); Notes.render();
   },
 
-  pin: function(id) { var n = DB.get('notes', id); if (n) n.pinned = !n.pinned; DB.save(); closeSheet(); this.render(); },
-  del: function(id) { if (!confirm('Delete?')) return; DB.remove('notes', id); closeSheet(); toast('Deleted'); this.render(); }
+  pin: function(id) { var n = DB.get('notes', id); if (n) { n.pinned = !n.pinned; DB.save(); } Notes.render(); },
+  del: function(id) { if (!confirm('Delete note?')) return; DB.remove('notes', id); toast('Deleted'); Notes.render(); }
 };
