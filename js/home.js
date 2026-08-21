@@ -32,6 +32,14 @@ var Home = {
       var expDocs = S.documents.filter(function(d) { var db = DB.daysBetween(d.expiry); return db >= 0 && db <= 90; });
       if (expDocs.length) warnings.push({ type: 'warn', text: expDocs.length + ' document' + (expDocs.length > 1 ? 's' : '') + ' expiring soon' });
     }
+    // Goal-at-risk warnings (linked habits below 60%)
+    DB.getAll('goals').filter(function(g) { return !g.completed; }).forEach(function(g) {
+      var linkedH = DB.getAll('habits').filter(function(h) { return h.linkedGoalId === g.id; });
+      if (linkedH.length) {
+        var avgRate = linkedH.reduce(function(s, h) { return s + Habits.getCompletionRate(h.id, 7); }, 0) / linkedH.length;
+        if (avgRate < 60) warnings.push({ type: 'warn', text: (g.emoji||'🎯') + ' "' + g.name + '" at risk (habits ' + Math.round(avgRate) + '%)' });
+      }
+    });
 
     var html = '<h1>' + App.greeting() + ', ' + DB.esc(S.settings.name) + '.</h1>';
     html += '<p class="sub">' + todayT.length + ' tasks today' + (overdue.length ? ', ' + overdue.length + ' overdue' : '') + '</p>';
