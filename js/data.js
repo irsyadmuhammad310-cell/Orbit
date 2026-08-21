@@ -212,7 +212,7 @@ var DB = {
   priColor: function(p) {
     return { critical: 'var(--red)', high: 'var(--orange)', medium: 'var(--blue)', low: 'var(--text3)' }[p] || 'var(--text3)';
   },
-  esc: function(s) { if (!s) return ''; return String(s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"'); },
+  esc: function(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; },
   projName: function(id) {
     var p = this.get('projects', id);
     return p ? p.name : '';
