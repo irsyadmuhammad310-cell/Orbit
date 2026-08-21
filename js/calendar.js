@@ -38,7 +38,7 @@ var Calendar = {
     html += '<div class="sec">' + selDate.toLocaleDateString('en-MY', { weekday:'long', day:'numeric', month:'short' }) + '</div>';
     if (!ev.length && !tk.length) html += '<div class="empty">Nothing scheduled</div>';
     ev.forEach(function(e) { html += '<div class="cev" onclick="Calendar.view(\'' + e.id + '\')"><div class="cev-t">' + (e.time||'—') + '</div><div class="cev-bar" style="background:' + (e.color||'var(--accent)') + '"></div><div><div class="cev-name">' + DB.esc(e.title) + '</div><div class="cev-sub">' + DB.esc(e.location||'') + '</div></div></div>'; });
-    tk.forEach(function(t) { html += '<div class="cev" onclick="Tasks.view(\'' + t.id + '\')"><div class="cev-t" style="color:' + DB.priColor(t.pri) + '">●</div><div class="cev-bar" style="background:' + DB.priColor(t.pri) + '"></div><div><div class="cev-name">' + DB.esc(t.title) + '</div><div class="cev-sub">' + (t.cat||'') + '</div></div></div>'; });
+    tk.forEach(function(t) { html += '<div class="cev"><div class="cev-t" style="color:' + DB.priColor(t.pri) + '">●</div><div class="cev-bar" style="background:' + DB.priColor(t.pri) + '"></div><div><div class="cev-name">' + DB.esc(t.title) + '</div><div class="cev-sub">' + (t.cat||'') + ' · ' + t.pri + '</div></div></div>'; });
 
     document.getElementById('pg-calendar').innerHTML = html;
   },
