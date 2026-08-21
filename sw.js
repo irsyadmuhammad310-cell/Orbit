@@ -1,6 +1,6 @@
-// === Orbit Service Worker (V1.5.3) ===
+// === Orbit Service Worker (V1.5.4) ===
 // IMPORTANT: Bump this version string on EVERY deploy to trigger update
-const CACHE_NAME = 'orbit-v1.5.3-b1724231820';
+const CACHE_NAME = 'orbit-v1.5.4-b1724234820';
 const ASSETS = [
   './',
   './index.html',
