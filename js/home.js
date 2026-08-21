@@ -58,7 +58,7 @@ var Home = {
       pri.forEach(function(t) { html += Tasks.taskRow(t); });
     }
 
-    html += '<div class="sec">Quick Capture</div><div class="qa"><div class="qa-btn" onclick="Tasks.openSmartCapture()"><span class="qa-ic">✨</span>Smart</div><div class="qa-btn" onclick="Tasks.openForm()"><span class="qa-ic">✓</span>Task</div><div class="qa-btn" onclick="Notes.openForm()"><span class="qa-ic">📝</span>Note</div></div>';
+    html += '<div class="sec">Quick Capture</div><div class="qa"><div class="qa-btn" onclick="Tasks.openSmartCapture()"><span class="qa-ic">✨</span>Smart</div><div class="qa-btn" onclick="Tasks.openForm()"><span class="qa-ic">✓</span>Task</div><div class="qa-btn" onclick="App.go(\'notes\');setTimeout(function(){Notes.openEditor();},100)"><span class="qa-ic">📝</span>Note</div></div>';
 
     document.getElementById('pg-home').innerHTML = html;
   }
