@@ -58,8 +58,9 @@ var Calendar = {
     var v = document.getElementById('et').value.trim();
     if (!vReq(v, 'Enter name')) return;
     var colors = ['#3b82f6','#22c55e','#f59e0b','#a855f7'];
-    DB.add('events', { title: v, date: document.getElementById('ed').value ? new Date(document.getElementById('ed').value+'T12:00:00').toISOString() : new Date().toISOString(), time: document.getElementById('es').value, endTime: document.getElementById('ee').value, location: document.getElementById('el').value.trim(), color: colors[Math.floor(Math.random()*colors.length)] });
-    closeSheet(); toast('Event added'); App.render(App.currentPage);
+    var dateVal = document.getElementById('ed').value;
+    DB.add('events', { title: v, date: dateVal ? new Date(dateVal+'T12:00:00').toISOString() : new Date(App.calYear, App.calMonth, App.calSelDay, 12, 0, 0).toISOString(), time: document.getElementById('es').value, endTime: document.getElementById('ee').value, location: document.getElementById('el').value.trim(), color: colors[Math.floor(Math.random()*colors.length)] });
+    closeSheet(); toast('Event added'); Calendar.render();
   },
 
   view: function(id) {
@@ -79,11 +80,11 @@ var Calendar = {
     e.time = document.getElementById('ees').value;
     e.endTime = document.getElementById('eee').value;
     e.location = document.getElementById('eel').value.trim();
-    DB.save(); closeSheet(); toast('Updated'); App.render(App.currentPage);
+    DB.save(); closeSheet(); toast('Updated'); Calendar.render();
   },
 
   del: function(id) {
     if (!confirm('Delete?')) return;
-    DB.remove('events', id); closeSheet(); toast('Deleted'); App.render(App.currentPage);
+    DB.remove('events', id); closeSheet(); toast('Deleted'); Calendar.render();
   }
 };
