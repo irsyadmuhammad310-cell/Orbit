@@ -47,7 +47,11 @@ var Calendar = {
   next: function() { App.calMonth++; if (App.calMonth>11) { App.calMonth=0; App.calYear++; } App.calSelDay=1; this.render(); },
 
   openForm: function() {
-    openSheet('<div class="sheet-title">New Event</div><div class="fg"><label class="fl">Title</label><input class="fi" id="et" placeholder="Event"></div><div class="fg"><label class="fl">Date</label><input class="fi" id="ed" type="date"></div><div class="fr"><div class="fg"><label class="fl">Start</label><input class="fi" id="es" type="time"></div><div class="fg"><label class="fl">End</label><input class="fi" id="ee" type="time"></div></div><div class="fg"><label class="fl">Location</label><input class="fi" id="el" placeholder="Optional"></div><button class="btn" onclick="Calendar.saveNew()">Add</button>');
+    // Pre-fill with selected date
+    var selDate = new Date(App.calYear, App.calMonth, App.calSelDay);
+    var dateVal = DB.dateKey(selDate);
+    openSheet('<div class="sheet-title">New Event</div><div class="fg"><label class="fl">Title</label><input class="fi" id="et" placeholder="Event name"></div><div class="fg"><label class="fl">Date</label><input class="fi" id="ed" type="date" value="' + dateVal + '"></div><div class="fr"><div class="fg"><label class="fl">Start</label><input class="fi" id="es" type="time"></div><div class="fg"><label class="fl">End</label><input class="fi" id="ee" type="time"></div></div><div class="fg"><label class="fl">Location</label><input class="fi" id="el" placeholder="Optional"></div><button class="btn" onclick="Calendar.saveNew()">Add Event</button>');
+    setTimeout(function() { var inp = document.getElementById('et'); if (inp) inp.focus(); }, 200);
   },
 
   saveNew: function() {
