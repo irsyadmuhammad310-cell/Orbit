@@ -1,5 +1,5 @@
 // js/admin.js — Reminders + Documents + Expenses + Automation Rules
-// Batch 6: Added automation engine, expense-project linking, subscription renewals
+// Batch 6: Added automation engine, expense-project linking, subscription renewal
 
 var Reminders = {
   render: function() {
