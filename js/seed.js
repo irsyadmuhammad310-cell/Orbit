@@ -1,5 +1,5 @@
 // js/seed.js — Empty app (no sample data)
-// New users start with a clean slate
+// New users start with a clean slated
 
 var Seed = {
   run: function() {
