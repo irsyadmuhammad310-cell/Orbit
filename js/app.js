@@ -17,6 +17,8 @@ var App = {
       }
       App.applyTheme();
       Home.render();
+      // Init notifications
+      Notif.init();
     });
   },
 
@@ -103,3 +105,85 @@ if (document.readyState === 'loading') {
 } else {
   App.init();
 }
+
+// === PUSH NOTIFICATIONS (V1.5.5) ===
+// Request permission on first interaction, schedule local notifications for reminders/events
+var Notif = {
+  supported: 'Notification' in window,
+  granted: false,
+
+  init: function() {
+    if (!this.supported) return;
+    if (Notification.permission === 'granted') { this.granted = true; this.scheduleAll(); }
+  },
+
+  requestPermission: function() {
+    if (!this.supported) { toast('Notifications not supported'); return; }
+    Notification.requestPermission().then(function(perm) {
+      if (perm === 'granted') { Notif.granted = true; toast('Notifications enabled'); Notif.scheduleAll(); }
+      else { toast('Permission denied'); }
+    });
+  },
+
+  // Schedule checks every minute for due reminders/events
+  scheduleAll: function() {
+    if (!this.granted) return;
+    // Check immediately
+    this.checkDue();
+    // Then every 60 seconds
+    setInterval(function() { Notif.checkDue(); }, 60000);
+  },
+
+  checkDue: function() {
+    if (!this.granted || !DB.store) return;
+    var now = new Date();
+    var todayKey = DB.dateKey(now);
+    var currentTime = (now.getHours() < 10 ? '0' : '') + now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+
+    // Check reminders
+    DB.getAll('reminders').forEach(function(r) {
+      if (r.done) return;
+      if (!r.date) return;
+      var rDate = DB.dateKey(new Date(r.date));
+      if (rDate !== todayKey) return;
+      if (r.time && r.time === currentTime && !r._notified) {
+        Notif.send('🔔 Reminder', r.title);
+        r._notified = true;
+      }
+      // If no time set, notify at 9am
+      if (!r.time && currentTime === '09:00' && !r._notified) {
+        Notif.send('🔔 Reminder', r.title);
+        r._notified = true;
+      }
+    });
+
+    // Check events (15 min before)
+    DB.getAll('events').forEach(function(e) {
+      if (!e.date || !e.time) return;
+      var eDate = DB.dateKey(new Date(e.date));
+      if (eDate !== todayKey) return;
+      // Calculate 15 min before
+      var parts = e.time.split(':');
+      var eventMins = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      var nowMins = now.getHours() * 60 + now.getMinutes();
+      if (nowMins === eventMins - 15 && !e._notified) {
+        Notif.send('📅 Event in 15 min', e.title + (e.location ? ' at ' + e.location : ''));
+        e._notified = true;
+      }
+    });
+  },
+
+  send: function(title, body) {
+    if (!this.granted) return;
+    try {
+      new Notification(title, { body: body, icon: './icon.png', badge: './icon.png', vibrate: [200, 100, 200] });
+    } catch(e) {
+      // Fallback for mobile (service worker notification)
+      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(function(reg) {
+          reg.showNotification(title, { body: body, icon: './icon.png', vibrate: [200, 100, 200] });
+        });
+      }
+    }
+  }
+};
