@@ -1,4 +1,4 @@
-// js/notes.js — Full-screen note editor with rich formatting
+// js/notes.js — Full-screen note editor with rich formattingg
 
 var Notes = {
   noteColor: function(c) { return {yellow:'var(--orangeBg)',blue:'var(--blueBg)',purple:'var(--accent2)',green:'var(--greenBg)'}[c] || 'var(--surface2)'; },
